@@ -1,7 +1,7 @@
 using AutoMapper;
-using GeekShopping.ProductAPI.Config;
-using GeekShopping.ProductAPI.Model.Context;
-using GeekShopping.ProductAPI.Repository;
+using GeekShopping.CartAPI.Config;
+using GeekShopping.CartAPI.Model.Context;
+using GeekShopping.CartAPI.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -11,10 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-
-
-
-
 // configurações do identity server
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
@@ -50,7 +46,7 @@ builder.Services.AddSwaggerGen(c =>
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement 
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
@@ -67,7 +63,7 @@ builder.Services.AddSwaggerGen(c =>
             new List<string>()
         }
     });
-
+    c.CustomSchemaIds(type => type.ToString());
 });
 
 // Automapper
@@ -76,7 +72,7 @@ builder.Services.AddSingleton(mapper);
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // repositórios
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
 
 // banco de dados
 var connection = builder.Configuration["MySqlConnection:MySqlConnectionString"];
