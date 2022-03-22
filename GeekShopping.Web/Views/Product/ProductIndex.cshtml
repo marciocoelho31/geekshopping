@@ -27,7 +27,7 @@
                 <tr>
                     <td>@item.Name</td>
                     <td>@item.CategoryName</td>
-                    <td>@((item.Price).ToString("N"))</td>
+                    <td>R$ @((item.Price).ToString("N"))</td>
                     <td>
                         <a asp-action="ProductUpdate" class="btn btn-success" asp-route-id="@item.Id">
                             <i class="fas fa-edit"></i>
