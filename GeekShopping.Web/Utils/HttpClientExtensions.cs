@@ -5,10 +5,10 @@ namespace GeekShopping.Web.Utils
 {
     public static class HttpClientExtensions
     {
-        private readonly static
-            MediaTypeHeaderValue contentType = new MediaTypeHeaderValue("application/json");
-
-        public static async Task<T> ReadContentAs<T>(this HttpResponseMessage response)
+        private static MediaTypeHeaderValue contentType 
+        = new MediaTypeHeaderValue("application/json");
+        public static async Task<T> ReadContentAs<T>(
+        	this HttpResponseMessage response)
         {
             if (!response.IsSuccessStatusCode)
             {
@@ -20,7 +20,8 @@ namespace GeekShopping.Web.Utils
             var dataAsString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             return JsonSerializer.Deserialize<T>(dataAsString,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                new JsonSerializerOptions { 
+                PropertyNameCaseInsensitive = true });
         }
 
         public static Task<HttpResponseMessage> PostAsJson<T>(this HttpClient httpClient, string url, T data)

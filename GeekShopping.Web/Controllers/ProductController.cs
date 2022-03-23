@@ -22,15 +22,14 @@ namespace GeekShopping.Web.Controllers
             return View(products);
         }
 
-        [Authorize]
         public async Task<IActionResult> ProductCreate()
         {
             return View();
         }
 
-        [HttpPost]
         [Authorize]
-        public async Task<IActionResult> ProductCreate(ProductModel model)
+        [HttpPost]
+        public async Task<IActionResult> ProductCreate(ProductViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -45,7 +44,6 @@ namespace GeekShopping.Web.Controllers
             return View(model);
         }
 
-        [Authorize]
         public async Task<IActionResult> ProductUpdate(long id)
         {
             var token = await HttpContext.GetTokenAsync("access_token");
@@ -58,9 +56,9 @@ namespace GeekShopping.Web.Controllers
             return NotFound();
         }
 
-        [HttpPost]
         [Authorize]
-        public async Task<IActionResult> ProductUpdate(ProductModel model)
+        [HttpPost]
+        public async Task<IActionResult> ProductUpdate(ProductViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -90,7 +88,7 @@ namespace GeekShopping.Web.Controllers
 
         [HttpPost]
         [Authorize(Roles = Role.Admin)]
-        public async Task<IActionResult> ProductDelete(ProductModel model)
+        public async Task<IActionResult> ProductDelete(ProductViewModel model)
         {
             var token = await HttpContext.GetTokenAsync("access_token");
             

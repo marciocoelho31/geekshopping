@@ -9,7 +9,7 @@ namespace GeekShopping.CartAPI.Repository
     public class CartRepository : ICartRepository
     {
         private readonly MySqlContext _context;
-        private readonly IMapper _mapper;
+        private IMapper _mapper;
 
         public CartRepository(MySqlContext context, IMapper mapper)
         {
@@ -19,7 +19,16 @@ namespace GeekShopping.CartAPI.Repository
 
         public async Task<bool> ApplyCoupon(string userId, string couponCode)
         {
-            throw new NotImplementedException();
+            var cartHeader = await _context.CartHeaders.FirstOrDefaultAsync(c => c.UserId == userId);
+            if (cartHeader != null)
+            {
+                cartHeader.CouponCode = couponCode;
+                _context.CartHeaders.Update(cartHeader);
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
 
         public async Task<bool> ClearCart(string userId)
@@ -56,7 +65,16 @@ namespace GeekShopping.CartAPI.Repository
 
         public async Task<bool> RemoveCoupon(string userId)
         {
-            throw new NotImplementedException();
+            var cartHeader = await _context.CartHeaders.FirstOrDefaultAsync(c => c.UserId == userId);
+            if (cartHeader != null)
+            {
+                cartHeader.CouponCode = "";
+                _context.CartHeaders.Update(cartHeader);
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
 
         public async Task<bool> RemoveFromCart(long cartDetailsId)
@@ -102,13 +120,14 @@ namespace GeekShopping.CartAPI.Repository
 
             //Check if CartHeader is null
             var cartHeader = await _context.CartHeaders.AsNoTracking().FirstOrDefaultAsync(
-                c => c.UserId == vo.CartHeader.UserId);
+                c => c.UserId == cart.CartHeader.UserId);
 
             if (cartHeader == null)
             {
                 //Create CartHeader and CartDetails
                 _context.CartHeaders.Add(cart.CartHeader);
                 await _context.SaveChangesAsync();
+
                 cart.CartDetails.FirstOrDefault().CartHeaderId = cart.CartHeader.Id;
                 cart.CartDetails.FirstOrDefault().Product = null;
                 _context.CartDetails.Add(cart.CartDetails.FirstOrDefault());
@@ -119,11 +138,11 @@ namespace GeekShopping.CartAPI.Repository
                 //If CartHeader is not null
                 //Check if CartDetails has same product
                 var cartDetail = await _context.CartDetails.AsNoTracking().FirstOrDefaultAsync(
-                    p => p.ProductId == vo.CartDetails.FirstOrDefault().ProductId && p.CartHeaderId == cartHeader.Id);
+                    p => p.ProductId == cart.CartDetails.FirstOrDefault().ProductId && p.CartHeaderId == cartHeader.Id);
                 if (cartDetail == null)
                 {
                     //Create CartDetails
-                    cart.CartDetails.FirstOrDefault().CartHeaderId = cart.CartHeader.Id;
+                    cart.CartDetails.FirstOrDefault().CartHeaderId = cartHeader.Id;
                     cart.CartDetails.FirstOrDefault().Product = null;
                     _context.CartDetails.Add(cart.CartDetails.FirstOrDefault());
                     await _context.SaveChangesAsync();

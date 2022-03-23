@@ -8,7 +8,7 @@ namespace GeekShopping.CartAPI.Controllers
     [Route("api/v1/[controller]")]
     public class CartController : ControllerBase
     {
-        private readonly ICartRepository _repository;
+        private ICartRepository _repository;
 
         public CartController(ICartRepository repository)
         {
@@ -16,9 +16,9 @@ namespace GeekShopping.CartAPI.Controllers
         }
 
         [HttpGet("find-cart/{id}")]
-        public async Task<ActionResult<CartVO>> FindById(string userId)
+        public async Task<ActionResult<CartVO>> FindById(string id)
         {
-            var cart = await _repository.FindCartByUserId(userId);
+            var cart = await _repository.FindCartByUserId(id);
             if (cart == null)
             {
                 return NotFound();
@@ -26,7 +26,7 @@ namespace GeekShopping.CartAPI.Controllers
             return Ok(cart);
         }
 
-        [HttpPost("add-cart/{id}")]
+        [HttpPost("add-cart")]
         public async Task<ActionResult<CartVO>> AddCart(CartVO vo)
         {
             var cart = await _repository.SaveOrUpdateCart(vo);
@@ -59,5 +59,26 @@ namespace GeekShopping.CartAPI.Controllers
             return Ok(cart);
         }
 
+        [HttpPost("apply-coupon")]
+        public async Task<ActionResult<CartVO>> ApplyCoupon(CartVO vo)
+        {
+            var status = await _repository.ApplyCoupon(vo.CartHeader.UserId, vo.CartHeader.CouponCode);
+            if (!status)
+            {
+                return NotFound();
+            }
+            return Ok(status);
+        }
+
+        [HttpDelete("remove-coupon/{userId}")]
+        public async Task<ActionResult<CartVO>> ApplyCoupon(string userId)
+        {
+            var status = await _repository.RemoveCoupon(userId);
+            if (!status)
+            {
+                return NotFound();
+            }
+            return Ok(status);
+        }
     }
 }

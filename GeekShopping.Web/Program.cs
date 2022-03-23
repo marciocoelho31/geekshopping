@@ -8,7 +8,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient<IProductService, ProductService>(c =>
     c.BaseAddress = new Uri(builder.Configuration["ServiceUrls:ProductAPI"])
 );
+// HttpClient / CartService
+builder.Services.AddHttpClient<ICartService, CartService>(c =>
+    c.BaseAddress = new Uri(builder.Configuration["ServiceUrls:CartAPI"])
+);
+// HttpClient / CouponService
+builder.Services.AddHttpClient<ICouponService, CouponService>(c =>
+    c.BaseAddress = new Uri(builder.Configuration["ServiceUrls:CouponAPI"])
+);
 
+builder.Services.AddHttpClientLogging(builder.Configuration);
 
 
 // Add services to the container.
