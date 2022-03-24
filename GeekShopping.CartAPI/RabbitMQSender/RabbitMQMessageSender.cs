@@ -23,38 +23,30 @@ namespace GeekShopping.CartAPI.RabbitMQSender
 
         public void SendMessage(BaseMessage message, string queueName)
         {
-            try
+            // criando a ConnectionFactory
+            var factory = new ConnectionFactory
             {
-                // criando a ConnectionFactory
-                var factory = new ConnectionFactory
-                {
-                    HostName = _hostName,
-                    UserName = _userName,
-                    Password = _password
-                };
+                HostName = _hostName,
+                UserName = _userName,
+                Password = _password
+            };
 
-                // criando a conexão de fato, com a factory definida acima
-                _connection = factory.CreateConnection();
+            // criando a conexão de fato, com a factory definida acima
+            _connection = factory.CreateConnection();
 
-                //definindo o channel que iremos usar
-                using var channel = _connection.CreateModel();
-                channel.QueueDeclare(queue: queueName, false, false, false, arguments: null);
+            //definindo o channel que iremos usar
+            using var channel = _connection.CreateModel();
+            channel.QueueDeclare(queue: queueName, false, false, false, arguments: null);
 
-                // pegando a message que recebemos como parâmetro e convertendo em um array de bytes
-                byte[] body = GetMessageAsByteArray(message);
+            // pegando a message que recebemos como parâmetro e convertendo em um array de bytes
+            byte[] body = GetMessageAsByteArray(message);
 
-                // publicando a mensagem
-                channel.BasicPublish(
-                    exchange: "",
-                    routingKey: queueName,
-                    basicProperties: null,
-                    body: body);
-            }
-            catch (Exception ex)
-            {
-
-                throw ex;
-            }
+            // publicando a mensagem
+            channel.BasicPublish(
+                exchange: "",
+                routingKey: queueName,
+                basicProperties: null,
+                body: body);
         }
 
         private byte[] GetMessageAsByteArray(BaseMessage message)
