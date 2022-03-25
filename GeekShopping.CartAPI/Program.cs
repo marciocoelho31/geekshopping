@@ -75,6 +75,11 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // repositórios
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 
+// o microserviço de cupons é consultado via http por esse microserviço CartAPI, então configura-se diferentemente
+builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+builder.Services.AddHttpClient<ICouponRepository, CouponRepository>(
+    s => s.BaseAddress = new Uri(builder.Configuration["ServiceUrls:CouponAPI"]));
+
 // RabbitMQ message sender
 builder.Services.AddSingleton<IRabbitMQMessageSender, RabbitMQMessageSender>();
 
