@@ -75,10 +75,16 @@ namespace GeekShopping.PaymentAPI.MessageConsumer
                 Email = vo.Email
             };
 
-            // publicando a mensagem de payment no RabbitMQ - fila 'orderpaymentresultqueue'
             try
             {
-                _rabbitMQMessageSender.SendMessage(paymentResultMessage, "orderpaymentresultqueue");
+                // publicando a mensagem de payment no RabbitMQ - fila 'orderpaymentresultqueue'
+                // (fila que ajuda a gravar a mensagem de que o pagamento foi processado ou nao)
+                //      abaixo, enviando a mensagem sem exchange, apontando direto a fila (queue)
+                //_rabbitMQMessageSender.SendMessage(paymentResultMessage, "orderpaymentresultqueue");
+
+                // utilizando exchange - fanout
+                _rabbitMQMessageSender.SendMessage(paymentResultMessage);
+
             }
             catch (Exception)
             {

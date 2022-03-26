@@ -1,23 +1,23 @@
-﻿using GeekShopping.OrderAPI.Messages;
-using GeekShopping.OrderAPI.Repository;
+﻿using GeekShopping.Email.Messages;
+using GeekShopping.Email.Repository;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
 
-namespace GeekShopping.OrderAPI.MessageConsumer
+namespace GeekShopping.Email.MessageConsumer
 {
     public class RabbitMQPaymentConsumer : BackgroundService
     {
-        private readonly OrderRepository _repository;
+        private readonly EmailRepository _repository;
         private IConnection _connection;
         private IModel _channel; // responsavel por consumir a fila
 
         //private const string ExchangeName = "FanoutPaymentUpdateExchange";
         private const string ExchangeName = "DirectPaymentUpdateExchange";
-        private const string PaymentOrderUpdateQueueName = "PaymentOrderUpdateQueueName";
+        private const string PaymentEmailUpdateQueueName = "PaymentEmailUpdateQueueName";
 
-        public RabbitMQPaymentConsumer(OrderRepository repository)
+        public RabbitMQPaymentConsumer(EmailRepository repository)
         {
             _repository = repository;
 
@@ -38,7 +38,7 @@ namespace GeekShopping.OrderAPI.MessageConsumer
             // sem usar exchange
             //_channel.QueueDeclare(queue: "orderpaymentresultqueue", false, false, false, arguments: null);
 
-            //// utilizando exchange - fanout
+            // utilizando exchange - fanout
             //_channel.ExchangeDeclare(ExchangeName, ExchangeType.Fanout);
             //queueName = _channel.QueueDeclare().QueueName;  // cria dinamicamente uma fila no RabbitMQ e seta a variavel
             //// binding para o exchange
@@ -47,9 +47,9 @@ namespace GeekShopping.OrderAPI.MessageConsumer
             // utilizando exchange - direct
             _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct);
             // declarando uma fila
-            _channel.QueueDeclare(PaymentOrderUpdateQueueName, false, false, false, null);
+            _channel.QueueDeclare(PaymentEmailUpdateQueueName, false, false, false, null);
             // binding para o exchange
-            _channel.QueueBind(PaymentOrderUpdateQueueName, ExchangeName, "PaymentOrder");
+            _channel.QueueBind(PaymentEmailUpdateQueueName, ExchangeName, "PaymentEmail");
 
         }
 
@@ -67,10 +67,10 @@ namespace GeekShopping.OrderAPI.MessageConsumer
                   var content = Encoding.UTF8.GetString(evt.Body.ToArray());
 
                   // deserializando
-                  UpdatePaymentResultVO vo = JsonSerializer.Deserialize<UpdatePaymentResultVO>(content);
+                  UpdatePaymentResultMessage vo = JsonSerializer.Deserialize<UpdatePaymentResultMessage>(content);
 
                   // 
-                  UpdatePaymentStatus(vo).GetAwaiter().GetResult();
+                  ProcessLogs(vo).GetAwaiter().GetResult();
 
                   // removendo a mensagem da lista
                   _channel.BasicAck(evt.DeliveryTag, false);
@@ -83,17 +83,17 @@ namespace GeekShopping.OrderAPI.MessageConsumer
             //_channel.BasicConsume(queueName, false, consumer);
 
             // usando exchange - direct
-            _channel.BasicConsume(PaymentOrderUpdateQueueName, false, consumer);
+            _channel.BasicConsume(PaymentEmailUpdateQueueName, false, consumer);
 
             return Task.CompletedTask;
 
         }
 
-        private async Task UpdatePaymentStatus(UpdatePaymentResultVO vo)
+        private async Task ProcessLogs(UpdatePaymentResultMessage message)
         {
             try
             {
-                await _repository.UpdateOrderPaymentStatus(vo.OrderId, vo.Status);
+                await _repository.LogEmail(message);
             }
             catch (Exception)
             {
